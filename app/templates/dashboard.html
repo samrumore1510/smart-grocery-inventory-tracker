@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- KPI Overview Cards -->
+<div class="kpi-grid">
+  <!-- Total Products -->
+  <div class="kpi-card" style="--kpi-accent: #3b82f6; --kpi-bg: rgba(59, 130, 246, 0.1);">
+    <div class="kpi-info">
+      <h3>Total Products</h3>
+      <div class="kpi-value" id="kpiTotalProducts">--</div>
+      <div class="kpi-sub">Active grocery inventory</div>
+    </div>
+    <div class="kpi-icon">📦</div>
+  </div>
+
+  <!-- Expiring Soon -->
+  <div class="kpi-card" style="--kpi-accent: #f59e0b; --kpi-bg: rgba(245, 158, 11, 0.1);">
+    <div class="kpi-info">
+      <h3>Expiring Soon</h3>
+      <div class="kpi-value" id="kpiExpiringSoon" style="color: #fbbf24;">--</div>
+      <div class="kpi-sub">Within 1-7 days</div>
+    </div>
+    <div class="kpi-icon">⏰</div>
+  </div>
+
+  <!-- Expired -->
+  <div class="kpi-card" style="--kpi-accent: #ef4444; --kpi-bg: rgba(239, 68, 68, 0.1);">
+    <div class="kpi-info">
+      <h3>Expired</h3>
+      <div class="kpi-value" id="kpiExpired" style="color: #f87171;">--</div>
+      <div class="kpi-sub">Needs removal / audit</div>
+    </div>
+    <div class="kpi-icon">❌</div>
+  </div>
+
+  <!-- Low Stock -->
+  <div class="kpi-card" style="--kpi-accent: #f43f5e; --kpi-bg: rgba(244, 63, 94, 0.1);">
+    <div class="kpi-info">
+      <h3>Low Stock</h3>
+      <div class="kpi-value" id="kpiLowStock" style="color: #fb7185;">--</div>
+      <div class="kpi-sub">Below minimum buffer</div>
+    </div>
+    <div class="kpi-icon">⚠️</div>
+  </div>
+
+  <!-- Monthly Spending -->
+  <div class="kpi-card" style="--kpi-accent: #10b981; --kpi-bg: rgba(16, 185, 129, 0.1);">
+    <div class="kpi-info">
+      <h3>Monthly Spending</h3>
+      <div class="kpi-value" id="kpiMonthlySpend" style="color: #34d399;">₹0</div>
+      <div class="kpi-sub">Calculated for this month</div>
+    </div>
+    <div class="kpi-icon">💰</div>
+  </div>
+</div>
+
+<!-- Smart Recommendations Section -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🤖</span>
+      <span>Smart AI Recommendations &amp; Expiry Alerts</span>
+    </div>
+    <span class="badge badge-fresh">Real-Time Engine</span>
+  </div>
+  <div class="rec-stack" id="recommendationsContainer">
+    <div style="text-align: center; color: var(--text-dim); padding: 20px;">
+      Analyzing inventory and consumption patterns...
+    </div>
+  </div>
+</div>
+
+<!-- Charts & Analytics Visuals -->
+<div class="charts-grid">
+  <!-- Monthly Trend Chart -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>📈</span>
+        <span>Grocery Spending Trend (Pandas Analytics)</span>
+      </div>
+      <a href="/expenses" class="btn btn-secondary btn-sm">Full Report &rarr;</a>
+    </div>
+    <div style="position: relative; height: 280px;">
+      <canvas id="monthlyTrendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Category Breakdown Chart -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🍩</span>
+        <span>Spending by Category</span>
+      </div>
+    </div>
+    <div style="position: relative; height: 280px;">
+      <canvas id="categoryDonutChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Action Strip -->
+<div class="card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(99, 102, 241, 0.08)); border-color: rgba(16, 185, 129, 0.2);">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h3 style="font-size: 1.05rem; font-weight: 700;">Portfolio Quick Actions</h3>
+      <p style="font-size: 0.82rem; color: var(--text-muted);">Perform smart audits, sync low stock into shopping lists, or export PDF</p>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="autoSyncShoppingList()">🔄 Sync Low Stock</button>
+      <a href="/api/analytics/reports/pdf" class="btn btn-secondary btn-sm" target="_blank">📄 Download PDF Audit</a>
+      <a href="/api/analytics/reports/excel" class="btn btn-secondary btn-sm" target="_blank">📊 Download Excel</a>
+      <a href="/inventory?action=add" class="btn btn-primary btn-sm">➕ Add Product</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let trendChartInstance = null;
+let donutChartInstance = null;
+
+async function loadDashboard() {
+  try {
+    const data = await apiRequest('/api/analytics/dashboard');
+    if (!data) return;
+
+    // 1. Populate Metrics
+    const m = data.metrics;
+    document.getElementById('kpiTotalProducts').textContent = m.total_products;
+    document.getElementById('kpiExpiringSoon').textContent = m.expiring_soon;
+    document.getElementById('kpiExpired').textContent = m.expired;
+    document.getElementById('kpiLowStock').textContent = m.low_stock;
+    document.getElementById('kpiMonthlySpend').textContent = `₹${m.monthly_spending.toLocaleString('en-IN')}`;
+
+    // 2. Populate Smart Recommendations
+    const recContainer = document.getElementById('recommendationsContainer');
+    recContainer.innerHTML = '';
+
+    if (data.recommendations && data.recommendations.length > 0) {
+      data.recommendations.forEach(r => {
+        const card = document.createElement('div');
+        card.className = `rec-card ${r.severity}`;
+        card.innerHTML = `
+          <div class="rec-content">
+            <div class="rec-icon">${r.icon}</div>
+            <div class="rec-body">
+              <h4>${r.title}</h4>
+              <p>${r.message}</p>
+            </div>
+          </div>
+          ${r.action_label ? `<a href="${r.action_url}" class="btn btn-secondary btn-sm">${r.action_label}</a>` : ''}
+        `;
+        recContainer.appendChild(card);
+      });
+    } else {
+      recContainer.innerHTML = `
+        <div style="padding: 16px; text-align: center; color: var(--text-dim);">
+          ✅ All items in inventory are fresh and stock levels are healthy!
+        </div>
+      `;
+    }
+
+    // 3. Load Expense Charts
+    loadExpenseCharts();
+  } catch (err) {
+    console.error('Dashboard load error:', err);
+  }
+}
+
+async function loadExpenseCharts() {
+  try {
+    const expData = await apiRequest('/api/analytics/expenses');
+    if (!expData) return;
+
+    // Monthly Trend
+    const ctxTrend = document.getElementById('monthlyTrendChart').getContext('2d');
+    if (trendChartInstance) trendChartInstance.destroy();
+
+    trendChartInstance = new Chart(ctxTrend, {
+      type: 'line',
+      data: {
+        labels: expData.monthly_trend.labels.length ? expData.monthly_trend.labels : ['Month 1', 'Month 2', 'Month 3'],
+        datasets: [{
+          label: 'Spending (₹)',
+          data: expData.monthly_trend.values.length ? expData.monthly_trend.values : [0, 0, 0],
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#10b981',
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: { callback: v => '₹' + v }
+          },
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.06)' }
+          }
+        }
+      }
+    });
+
+    // Category Donut
+    const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
+    if (donutChartInstance) donutChartInstance.destroy();
+
+    const colors = ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6', '#f43f5e', '#14b8a6'];
+    donutChartInstance = new Chart(ctxDonut, {
+      type: 'doughnut',
+      data: {
+        labels: expData.category_distribution.labels,
+        datasets: [{
+          data: expData.category_distribution.values,
+          backgroundColor: colors.slice(0, expData.category_distribution.labels.length),
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+        },
+        cutout: '70%'
+      }
+    });
+
+  } catch (err) {
+    console.error('Charts load error:', err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+{% endblock %}

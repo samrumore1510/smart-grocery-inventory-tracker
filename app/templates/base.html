@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} &bull; Smart Grocery Tracker</title>
+  
+  <!-- Modern Typography: Google Fonts Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Core Design System -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  
+  <!-- Chart.js for interactive analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand-wrapper">
+        <div class="brand-icon">🛒</div>
+        <div>
+          <h2 class="brand-title">SmartGrocery</h2>
+          <span class="brand-tagline">Expiry &amp; AI Tracker</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="/dashboard" class="nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
+          <span class="nav-icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="/inventory" class="nav-item {% if active_tab == 'inventory' %}active{% endif %}">
+          <span class="nav-icon">📦</span>
+          <span>Inventory</span>
+        </a>
+
+        <a href="/shopping-list" class="nav-item {% if active_tab == 'shopping' %}active{% endif %}">
+          <span class="nav-icon">🛍️</span>
+          <span>Shopping List</span>
+        </a>
+
+        <a href="/expenses" class="nav-item {% if active_tab == 'expenses' %}active{% endif %}">
+          <span class="nav-icon">💰</span>
+          <span>Expense Analytics</span>
+        </a>
+      </nav>
+
+      <!-- User Profile Card -->
+      {% if user %}
+      <div class="user-profile-card">
+        <div class="user-info">
+          <div class="user-avatar">{{ user.username[0]|upper }}</div>
+          <div class="user-details">
+            <h4>{{ user.full_name or user.username }}</h4>
+            <span>Role: {{ user.role }}</span>
+          </div>
+        </div>
+        <button class="btn-logout" title="Logout" onclick="handleLogout()">🚪</button>
+      </div>
+      {% endif %}
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+      <!-- Sticky Top Header -->
+      <header class="top-header">
+        <div class="page-title-box">
+          <h1>{{ title }}</h1>
+          <p>Real-time grocery management &amp; smart expiry prediction</p>
+        </div>
+
+        <div class="header-actions">
+          <button id="themeToggleBtn" class="btn-theme-toggle" onclick="toggleTheme()">
+            ☀️ Light
+          </button>
+          <a href="/inventory?action=add" class="btn btn-primary btn-sm">
+            <span>➕</span>
+            <span>Add Product</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Page Content -->
+      <main class="content-container">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- JavaScript Bundle -->
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

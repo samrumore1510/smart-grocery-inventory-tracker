@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Inventory Toolbar -->
+<div class="toolbar">
+  <div class="toolbar-left">
+    <!-- Live Search -->
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search product or brand..." onkeyup="handleFilterChange()">
+    </div>
+
+    <!-- Category Filter -->
+    <select id="categoryFilter" class="select-filter" onchange="handleFilterChange()">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- Expiry Filter -->
+    <select id="expiryFilter" class="select-filter" onchange="handleFilterChange()">
+      <option value="all">All Expiry Status</option>
+      <option value="expiring">Expiring Soon (1-7 Days) 🔴🟠</option>
+      <option value="critical">Critical (1-3 Days) 🔴</option>
+      <option value="warning">Warning (4-7 Days) 🟠</option>
+      <option value="expired">Expired ❌</option>
+      <option value="fresh">Fresh ✅</option>
+    </select>
+
+    <!-- Stock Status Filter -->
+    <select id="stockFilter" class="select-filter" onchange="handleFilterChange()">
+      <option value="all">All Stock Status</option>
+      <option value="low_stock">Low Stock ⚠️</option>
+      <option value="out_of_stock">Out of Stock ❌</option>
+      <option value="available">Available ✅</option>
+    </select>
+  </div>
+
+  <div class="toolbar-right">
+    <button class="btn btn-secondary btn-sm" onclick="exportInventoryPDF()">📄 PDF Report</button>
+    <button class="btn btn-primary btn-sm" onclick="openAddProductModal()">➕ Add Product</button>
+  </div>
+</div>
+
+<!-- Products Data Table Card -->
+<div class="card" style="padding: 0; overflow: hidden;">
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Category</th>
+          <th>Stock Quantity</th>
+          <th>Purchase Date</th>
+          <th>Expiry Date</th>
+          <th>Expiry Status</th>
+          <th>Stock Status</th>
+          <th>Unit Price</th>
+          <th>Total Value</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryTableBody">
+        <tr>
+          <td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            Loading inventory items...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add / Edit Product Modal -->
+<div id="productModal" class="modal-backdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="productModalTitle">Add New Product</h3>
+      <button class="btn-close" onclick="closeModal('productModal')">&times;</button>
+    </div>
+    <form id="productForm" onsubmit="handleProductFormSubmit(event)">
+      <div class="modal-body">
+        <input type="hidden" id="modalProductId">
+
+        <div class="form-grid">
+          <!-- Name -->
+          <div class="form-group form-full">
+            <label class="form-label">Product Name *</label>
+            <input type="text" id="prodName" class="form-control" placeholder="e.g. Amul Toned Milk" required>
+          </div>
+
+          <!-- Brand -->
+          <div class="form-group">
+            <label class="form-label">Brand / Manufacturer</label>
+            <input type="text" id="prodBrand" class="form-control" placeholder="e.g. Amul, Tata, Fortune">
+          </div>
+
+          <!-- Category -->
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="prodCategory" class="form-control" required>
+              {% for cat in categories %}
+              <option value="{{ cat.id }}">{{ cat.icon }} {{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Quantity -->
+          <div class="form-group">
+            <label class="form-label">Current Quantity *</label>
+            <input type="number" id="prodQuantity" class="form-control" step="0.1" min="0" value="1.0" required>
+          </div>
+
+          <!-- Unit -->
+          <div class="form-group">
+            <label class="form-label">Unit of Measure *</label>
+            <select id="prodUnit" class="form-control" required>
+              <option value="kg">kg (Kilograms)</option>
+              <option value="g">g (Grams)</option>
+              <option value="L">L (Liters)</option>
+              <option value="ml">ml (Milliliters)</option>
+              <option value="pcs">pcs (Pieces)</option>
+              <option value="packets">packets</option>
+              <option value="bottles">bottles</option>
+            </select>
+          </div>
+
+          <!-- Min Quantity (Low stock alert threshold) -->
+          <div class="form-group">
+            <label class="form-label">Low Stock Threshold (Min Qty) *</label>
+            <input type="number" id="prodMinQuantity" class="form-control" step="0.1" min="0" value="1.0" required>
+          </div>
+
+          <!-- Unit Price -->
+          <div class="form-group">
+            <label class="form-label">Price per Unit (₹) *</label>
+            <input type="number" id="prodUnitPrice" class="form-control" step="0.5" min="0" value="0.0" required>
+          </div>
+
+          <!-- Purchase Date -->
+          <div class="form-group">
+            <label class="form-label">Purchase Date *</label>
+            <input type="date" id="prodPurchaseDate" class="form-control" required>
+          </div>
+
+          <!-- Expiry Date -->
+          <div class="form-group">
+            <label class="form-label">Expiry Date *</label>
+            <input type="date" id="prodExpiryDate" class="form-control" required>
+          </div>
+
+          <!-- Storage Location -->
+          <div class="form-group">
+            <label class="form-label">Storage Location</label>
+            <select id="prodStorage" class="form-control">
+              <option value="Pantry">Pantry / Cabinet</option>
+              <option value="Refrigerator">Refrigerator</option>
+              <option value="Freezer">Freezer</option>
+              <option value="Kitchen Counter">Kitchen Counter</option>
+            </select>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-group form-full">
+            <label class="form-label">Special Notes / Batch Info</label>
+            <textarea id="prodNotes" class="form-control" rows="2" placeholder="e.g. Bought from D-Mart, seal unopened"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('productModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="btnSaveProduct">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentProducts = [];
+
+async function loadInventory() {
+  const search = document.getElementById('searchInput').value.trim();
+  const categoryId = document.getElementById('categoryFilter').value;
+  const expiryFilter = document.getElementById('expiryFilter').value;
+  const stockFilter = document.getElementById('stockFilter').value;
+
+  let url = '/api/inventory?';
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+  if (categoryId) params.append('category_id', categoryId);
+  if (expiryFilter) params.append('expiry_filter', expiryFilter);
+  if (stockFilter) params.append('stock_filter', stockFilter);
+
+  url += params.toString();
+
+  const tbody = document.getElementById('inventoryTableBody');
+  try {
+    const products = await apiRequest(url);
+    currentProducts = products || [];
+    renderInventoryTable(currentProducts);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--status-critical); padding: 30px;">Error loading inventory: ${err.message}</td></tr>`;
+  }
+}
+
+function renderInventoryTable(products) {
+  const tbody = document.getElementById('inventoryTableBody');
+  tbody.innerHTML = '';
+
+  if (!products || products.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" style="text-align: center; padding: 40px; color: var(--text-dim);">
+          No grocery items match your search or filter criteria.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  products.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.id = `product-row-${p.id}`;
+
+    // Expiry badge class
+    const expBadgeClass = `badge-${p.expiry_status}`;
+    // Stock badge class
+    const stockBadgeClass = `badge-${p.stock_status.replace('_', '-')}`;
+
+    tr.innerHTML = `
+      <td>
+        <strong>${p.name}</strong>
+        ${p.brand ? `<br><small style="color: var(--text-dim);">${p.brand}</small>` : ''}
+      </td>
+      <td>
+        <span>${p.category_icon || '📦'} ${p.category_name}</span>
+      </td>
+      <td>
+        <div class="qty-stepper">
+          <button class="btn-step" onclick="adjustStock(${p.id}, -1)">-</button>
+          <span id="qty-${p.id}" style="font-weight: 700; min-width: 48px; text-align: center;">
+            ${p.quantity} ${p.unit}
+          </span>
+          <button class="btn-step" onclick="adjustStock(${p.id}, 1)">+</button>
+        </div>
+      </td>
+      <td><small>${p.purchase_date}</small></td>
+      <td><strong>${p.expiry_date}</strong></td>
+      <td>
+        <span class="badge ${expBadgeClass}">${p.expiry_badge_text}</span>
+      </td>
+      <td>
+        <span id="stock-badge-${p.id}" class="badge ${stockBadgeClass}">${p.stock_badge_text}</span>
+      </td>
+      <td>₹${p.unit_price}</td>
+      <td><strong>₹${p.total_value.toFixed(2)}</strong></td>
+      <td style="text-align: right; white-space: nowrap;">
+        <button class="btn btn-secondary btn-sm" title="Edit" onclick="openEditProductModal(${p.id})">✏️</button>
+        <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="confirmDeleteProduct(${p.id}, '${p.name}')">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function handleFilterChange() {
+  loadInventory();
+}
+
+function openAddProductModal() {
+  document.getElementById('productModalTitle').textContent = 'Add New Product';
+  document.getElementById('modalProductId').value = '';
+  document.getElementById('productForm').reset();
+  
+  // Set default dates
+  const today = new Date().toISOString().split('T')[0];
+  const nextMonth = new Date();
+  nextMonth.setDate(nextMonth.getDate() + 30);
+  const nextMonthStr = nextMonth.toISOString().split('T')[0];
+
+  document.getElementById('prodPurchaseDate').value = today;
+  document.getElementById('prodExpiryDate').value = nextMonthStr;
+  
+  openModal('productModal');
+}
+
+function openEditProductModal(productId) {
+  const p = currentProducts.find(item => item.id === productId);
+  if (!p) return;
+
+  document.getElementById('productModalTitle').textContent = `Edit Product: ${p.name}`;
+  document.getElementById('modalProductId').value = p.id;
+  document.getElementById('prodName').value = p.name;
+  document.getElementById('prodBrand').value = p.brand || '';
+  document.getElementById('prodCategory').value = p.category_id;
+  document.getElementById('prodQuantity').value = p.quantity;
+  document.getElementById('prodUnit').value = p.unit;
+  document.getElementById('prodMinQuantity').value = p.min_quantity;
+  document.getElementById('prodUnitPrice').value = p.unit_price;
+  document.getElementById('prodPurchaseDate').value = p.purchase_date;
+  document.getElementById('prodExpiryDate').value = p.expiry_date;
+  document.getElementById('prodStorage').value = p.storage_location || 'Pantry';
+  document.getElementById('prodNotes').value = p.notes || '';
+
+  openModal('productModal');
+}
+
+async function handleProductFormSubmit(e) {
+  e.preventDefault();
+  const productId = document.getElementById('modalProductId').value;
+  const payload = {
+    name: document.getElementById('prodName').value.trim(),
+    brand: document.getElementById('prodBrand').value.trim() || null,
+    category_id: parseInt(document.getElementById('prodCategory').value),
+    quantity: parseFloat(document.getElementById('prodQuantity').value),
+    unit: document.getElementById('prodUnit').value,
+    min_quantity: parseFloat(document.getElementById('prodMinQuantity').value),
+    unit_price: parseFloat(document.getElementById('prodUnitPrice').value),
+    purchase_date: document.getElementById('prodPurchaseDate').value,
+    expiry_date: document.getElementById('prodExpiryDate').value,
+    storage_location: document.getElementById('prodStorage').value,
+    notes: document.getElementById('prodNotes').value.trim() || null
+  };
+
+  try {
+    if (productId) {
+      // Update
+      await apiRequest(`/api/inventory/${productId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+      showToast(`Updated product "${payload.name}"`, 'success');
+    } else {
+      // Create
+      await apiRequest('/api/inventory', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      showToast(`Added product "${payload.name}" to inventory!`, 'success');
+    }
+    closeModal('productModal');
+    loadInventory();
+  } catch (err) {
+    console.error('Save product error:', err);
+  }
+}
+
+function exportInventoryPDF() {
+  window.open('/api/analytics/reports/pdf', '_blank');
+}
+
+// Check if URL has ?action=add
+document.addEventListener('DOMContentLoaded', () => {
+  loadInventory();
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('action') === 'add') {
+    openAddProductModal();
+  } else if (urlParams.get('filter') === 'expiring') {
+    document.getElementById('expiryFilter').value = 'expiring';
+    loadInventory();
+  } else if (urlParams.get('search')) {
+    document.getElementById('searchInput').value = urlParams.get('search');
+    loadInventory();
+  }
+});
+</script>
+{% endblock %}

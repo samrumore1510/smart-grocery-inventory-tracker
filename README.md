@@ -1,181 +1,174 @@
-# 🛒 Smart Grocery Inventory & Expiry Tracker
+# 🛒 Smart Grocery Inventory & Expiry Tracker (NoSQL • Vibe-Coded Edition)
 
-> **A 90%+ Python Full-Stack Web Application for intelligent grocery inventory management, real-time expiry date classification, low-stock alerts, automated shopping lists, expense analytics, and predictive replenishment.**
-> 
-> *Designed specifically as a flagship project for an MCA (Master of Computer Applications) Portfolio.*
-
----
-
-## 🎯 1. Real-World Problem & Motivation
-
-Households and small retail shops consistently face significant inefficiencies:
-1. **Unnoticed Product Expiry**: Perishables (dairy, greens, breads) expire silently in refrigerators and pantries, causing financial waste and food hazards.
-2. **Duplicate Purchases**: Consumers buy items they already have because they lack an updated inventory in hand.
-3. **Unexpected Stockouts**: Essential staples (cooking oil, rice, salt, milk) run out without warning.
-4. **Lack of Expense Visibility**: Spending patterns and grocery budgets are rarely tracked systematically.
+> **Modern Academic Portfolio & Production-Ready Full-Stack Web Application**  
+> Built with **Python 3.11+**, **FastAPI**, **MongoDB (NoSQL)**, **Pure PyMongo (Zero ORM)**, **Pandas**, and a **Modern Vanilla JavaScript SPA (Zero Jinja2)**.
 
 ---
 
-## 💡 2. Proposed Solution
+## 🎯 Real-World Problem Solved
+People and households often:
+1. **Forget product expiry dates**, leading to food wastage and lost money.
+2. **Accidentally buy duplicates** of groceries they already have in the pantry.
+3. **Run out of staple items** unexpectedly (e.g., milk, rice, oil).
+4. **Lack visibility into grocery expenditure**, unaware of where their monthly food budget goes.
 
-**Smart Grocery Tracker** provides an automated, centralized platform built with Python and modern web standards:
-- **Intelligent Expiry Classification**: Dynamic categorization into Expired ❌, Critical (1-3 Days) 🔴, Warning (4-7 Days) 🟠, and Fresh ✅.
-- **Stock Buffer Monitoring**: Alerts when products reach minimum threshold or go out of stock.
-- **Auto-Sync Smart Shopping List**: Automatically queues low-stock items; restocks inventory upon purchase in one click.
-- **Data Analytics Engine (Pandas)**: Computes daily spending trends, monthly totals, category breakdowns, and financial wastage audits.
-- **Smart Predictive Recommendations**: Context-aware meal suggestions and replenishment predictions based on burn-rate cycles (*"You usually purchase cooking oil every 30 days. Your current stock may last only 5 days."*).
-- **Camera Barcode Scanner**: Scan barcodes using webcams or mobile phones with instant recognition and printable label generator.
-- **Audit Reports**: One-click professional PDF audit report (ReportLab) and Excel export (OpenPyXL).
+### 💡 The Solution
+A clean, lightning-fast web application that:
+- 🔔 **Classifies grocery expiry**:
+  - `Expired ❌` (already passed expiry date)
+  - `Critical 🔴` (expires in 1–3 days)
+  - `Warning 🟠` (expires in 4–7 days)
+  - `Fresh ✅` (more than 7 days remaining)
+- 📦 **Monitors stock thresholds**:
+  - `Out of Stock ❌` (quantity = 0)
+  - `Low Stock ⚠️` (quantity ≤ minimum threshold)
+  - `Available ✅` (healthy stock levels)
+- 🛍️ **Auto-Sync Smart Shopping List**:
+  - Automatically identifies low-stock items and queues them for restock.
+  - Check off purchased items to automatically restore pantry quantities!
+  - 📲 **1-Click WhatsApp export** for easy sharing with roommates or family.
+- 💰 **Pandas-Powered Financial Analytics**:
+  - Continuous 30-day spending trends, monthly expenditure, category distribution charts, and potential food wastage loss calculation.
+- 📄 **1-Click Executive Reports**:
+  - Beautiful tabular PDF export (ReportLab) and Excel spreadsheet export (OpenPyXL).
 
 ---
 
-## 🏗️ 3. Architecture & 90% Python Implementation
+## 🏗️ Clean "Vibe Code" Architecture (Zero ORM • Zero Jinja2)
 
-The project is architected so that **over 90% of all executable logic is pure Python**:
+This project has been intentionally redesigned to be **intuitive, readable, and easy to explain** in project vivas or interviews:
 
 ```
-                       ┌───────────────────────────────┐
-                       │     Browser / Mobile Device   │
-                       │   (HTML5, CSS3, Camera Barcode)│
-                       └──────────────┬────────────────┘
-                                      │ HTTP / JSON / Jinja2
-                                      ▼
-                       ┌───────────────────────────────┐
-                       │      FastAPI Web Server       │
-                       │     (Python 3.11 Backend)     │
-                       └──────┬──────────────┬─────────┘
-                              │              │
-         ┌────────────────────┴──┐      ┌───┴────────────────────┐
-         │ Core Business Modules │      │   Data & Analytics     │
-         ├───────────────────────┤      ├────────────────────────┤
-         │ • Auth & User Roles   │      │ • Pandas Engine        │
-         │ • Inventory CRUD      │      │ • Expiry Classifier    │
-         │ • Barcode Generator   │      │ • Smart Recommender    │
-         │ • PDF Exporter        │      │ • Demand Predictor     │
-         └───────────┬───────────┘      └───┬────────────────────┘
-                     │                      │
-                     └──────────┬───────────┘
-                                ▼
-                       ┌─────────────────┐
-                       │ SQLAlchemy ORM  │
-                       └────────┬────────┘
-                                │
-                   ┌────────────┴────────────┐
-                   ▼                         ▼
-          ┌─────────────────┐       ┌─────────────────┐
-          │ SQLite (Default)│       │  MySQL (Prod)   │
-          │ Zero-config dev │       │  schema.sql     │
-          └─────────────────┘       └─────────────────┘
+D:\smart_grocery_tracker\
+├── database.py         # Direct MongoDB connection & PyMongo collections (Zero ORM)
+├── services.py         # Pure Python business logic, expiry classifiers & Pandas analytics
+├── main.py             # FastAPI REST endpoints & static web app server
+├── seed.py             # One-click demo database populator with exact portfolio metrics
+├── requirements.txt    # Lean Python dependencies
+├── static/             # Single-Page Application (SPA) Frontend (Zero Jinja2)
+│   ├── index.html      # Semantic HTML5 dashboard, modals & tabbed UI
+│   ├── style.css       # Modern CSS design system (Plus Jakarta Sans, responsive grid)
+│   └── app.js          # Reactive Vanilla JS calling REST API via fetch()
+└── tests/
+    └── test_mongo.py   # Automated Pytest test suite (100% passing)
 ```
 
-### Component Breakdown
-| Layer | Technology | Role |
-| :--- | :--- | :--- |
-| **Backend & APIs** | **Python 3.11 + FastAPI** | High-performance asynchronous REST API and Jinja2 template rendering |
-| **Database ORM** | **SQLAlchemy 2.0 + PyMySQL** | Dual support for SQLite (development/offline viva) and MySQL (production) |
-| **Data Analysis** | **Pandas** | Time-series grocery expense aggregations, burn rate, and wastage calculations |
-| **Security & Auth** | **Passlib (Bcrypt) + PyJWT** | Role-based authentication (Admin / User) with JWT cookies and headers |
-| **Reporting & Barcode** | **ReportLab + Python-Barcode** | PDF generation and Code128/EAN13 barcode generation |
-| **Frontend** | **HTML5 + Vanilla CSS + Chart.js** | Glassmorphic, responsive interface with dark/light mode and camera scanner |
+### ⚡ Why No ORM?
+Instead of heavy, complicated Object-Relational Mappers (like SQLAlchemy) that hide what happens under the hood, this project uses **direct PyMongo dictionary queries** (`products_col.find()`, `insert_one()`, `update_one()`, `$set`). This gives:
+- 🚀 **Maximum speed & zero overhead**.
+- 🧠 **100% transparent Python dictionaries**: what you see in the database is exactly what you get in Python.
+- 🎓 **Easy to understand and explain** in viva examinations.
+
+### ⚡ Why No Jinja2?
+Instead of fragmented HTML files and server-side template rendering, the frontend is a **modern Single-Page Application (SPA)** using pure Vanilla HTML, CSS, and JavaScript.
+- The browser communicates with the Python backend entirely over clean **REST API endpoints** (`/api/dashboard`, `/api/inventory`, `/api/shopping`, `/api/expenses`).
+- Provides instantaneous tab switching, live filters, and smooth micro-animations with zero page reloads.
 
 ---
 
-## 🚀 4. Quickstart Guide
+## 📊 Seeded Portfolio Benchmark Metrics
+
+When you run `python seed.py`, MongoDB is populated with the following verified portfolio data:
+
+| Metric | Target Value | Description |
+| :--- | :---: | :--- |
+| **Total Products** | **35** | Distributed across 10 staple grocery categories |
+| **Expiring Soon** | **4** | 3 critical (1-3 days) + 1 warning (4-7 days) |
+| **Expired Items** | **2** | 1 bread & 1 yogurt past date (triggers wastage warning) |
+| **Low Stock Items** | **5** | Low quantity items auto-queued to shopping list |
+| **Monthly Spending** | **₹4,250.00** | September 2026 grocery expenditures |
+| **Potential Food Wastage** | **₹170.00** | Total monetary value of the 2 expired items |
+
+### Pre-configured User Accounts
+- **Regular User (Primary Demo)**:
+  - **Username**: `user`
+  - **Password**: `user123`
+  - *Contains the complete 35-item pantry and ₹4,250 expense history.*
+- **System Administrator**:
+  - **Username**: `admin`
+  - **Password**: `admin123`
+
+---
+
+## 🚀 How to Run the Project (Step-by-Step)
 
 ### Prerequisites
-- Python 3.10+ installed
-- Pip package manager
+- Python 3.11 or higher installed on your computer.
+- Local MongoDB running on `localhost:27017` (MongoDB Community Server).
 
-### Step 1: Clone or Navigate to Project
-```bash
-cd C:\Users\Samruddhi\.gemini\antigravity-ide\scratch\smart_grocery_tracker
-```
-
-### Step 2: Install Dependencies
-```bash
+### Step 1: Install Dependencies
+Open PowerShell or Command Prompt in the project folder:
+```powershell
+cd D:\smart_grocery_tracker
 pip install -r requirements.txt
 ```
 
-### Step 3: Run the Application
-```bash
-python run.py
+### Step 2: Seed the Database
+Populate MongoDB with the 35 products and ₹4,250 spending metrics:
+```powershell
+python seed.py
 ```
-> **Note**: On first launch, `run.py` automatically initializes the database schema and seeds **35 realistic demo items** matching all portfolio specifications!
+*(You will see confirmation output confirming 35 products and ₹4,250 expenses).*
 
-### Step 4: Open in Browser
-- **Web App**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **Interactive API Documentation (Swagger)**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **Alternative Docs (ReDoc)**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
-
----
-
-## 🔑 5. Pre-Configured Demo Credentials
-
-Use these credentials to log in and present the application:
-| Role | Username | Password | Purpose |
-| :--- | :--- | :--- | :--- |
-| **Household User** | `user` | `user123` | Demonstrates the 35 preloaded items, alerts, smart shopping list, and charts |
-| **Store Admin** | `admin` | `admin123` | Demonstrates administrator privileges and inventory oversight |
-
-*(Quick one-click login buttons are also built directly into the login screen!)*
-
----
-
-## 📊 6. Seeded Portfolio Metrics
-
-When logging in as `user`, the dashboard displays:
-- **Total Products**: `35`
-- **Expiring Soon**: `4` (Amul Milk, Spinach, Tomatoes, Paneer)
-- **Expired**: `2` (Brown Bread, Greek Yogurt)
-- **Low Stock**: `5` (Rice 1kg, Cooking Oil 0L, Sugar 0.5kg, Milk 1L, Bread 1pk)
-- **Monthly Spending**: `₹4,250.00`
-- **Smart Recommendations**: Dynamic banners for critical expiry, recipe suggestions, and replenishment forecasting.
-
----
-
-## 🗄️ 7. Switching to MySQL Database
-
-By default, the application runs on **SQLite** (`smart_grocery.db`) so that you can run it anywhere without requiring a running MySQL server.
-
-To switch to **MySQL**:
-1. Ensure MySQL server is running (e.g. via XAMPP, WampServer, or MySQL Server).
-2. Create the database:
-   ```sql
-   CREATE DATABASE smart_grocery;
-   ```
-3. Set the `DATABASE_URL` environment variable (or edit `.env`):
-   ```bash
-   DATABASE_URL="mysql+pymysql://root:password@localhost:3306/smart_grocery"
-   ```
-4. Re-run `python run.py` (or import `scripts/schema.sql` directly into MySQL Workbench / phpMyAdmin).
-
----
-
-## 🧪 8. Running Automated Tests
-
-Run the comprehensive pytest suite:
-```bash
-python -m pytest tests/ -v
+### Step 3: Start the Application
+```powershell
+python main.py
 ```
+Now open your web browser and go to:
+👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
 
-Tests cover:
-- Password hashing security & JWT token decode
-- Expiry date status classifications (Expired, 1-3d Critical, 4-7d Warning, Fresh)
-- Low stock & Out of Stock boundary conditions
-- Recommendation engine data enrichment
+Interactive API Swagger documentation is available at:
+👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**
 
 ---
 
-## 🎓 9. MCA Viva / Project Defense Q&A
+## 🧪 Running Automated Unit Tests
+To verify all expiry calculations, stock classifications, database queries, and report exports:
+```powershell
+pytest tests/test_mongo.py -v
+```
+*All 9 tests pass with 100% green checkmarks.*
 
-### Q1: Why did you choose FastAPI over Django or Flask?
-> **Answer**: FastAPI provides modern asynchronous performance (ASGI), automatic interactive OpenAPI (Swagger) documentation, and native Pydantic type validation, making the codebase cleaner, faster, and enterprise-ready while keeping it lightweight.
+---
 
-### Q2: How does the Smart Recommendation algorithm work?
-> **Answer**: The recommendation service (`app/services/recommender.py`) executes multi-tier heuristic and predictive rules:
-> 1. *Urgent Expiry*: Identifies perishables expiring within 1-3 days and prioritizes them at the top of the user's dashboard.
-> 2. *Recipe Pairing*: Detects combinations of expiring ingredients (e.g., tomatoes + paneer) and suggests culinary usage ideas.
-> 3. *Predictive Replenishment*: Evaluates days held vs. current quantity and average household purchase cycles (e.g., 30 days for cooking oil) to warn when stock will deplete within 5 days.
+## 💡 How to Share This Project with Friends / Evaluators
 
-### Q3: How is expense analytics calculated?
-> **Answer**: Rather than raw database queries, the system uses **Pandas** in `app/services/analytics.py` to perform time-series resample and group-by aggregations. This produces daily rolling averages, month-over-month trends, category expenditure distribution, and financial loss calculations on expired items.
+### Option A: Send via ZIP Archive
+1. Delete the `__pycache__` and `.pytest_cache` folders if present.
+2. Right-click the `smart_grocery_tracker` folder -> **Send to** -> **Compressed (zipped) folder**.
+3. Send the ZIP file to your friend.
+4. Your friend simply extracts the ZIP, runs `pip install -r requirements.txt`, runs `python seed.py`, and launches `python main.py`!
+
+### Option B: Host on Local Wi-Fi (Live Demo on Phone/Laptop)
+To let friends on the same Wi-Fi network use your tracker from their mobile phones:
+1. In `main.py`, change `host="127.0.0.1"` to `host="0.0.0.0"`.
+2. Find your laptop IP address by typing `ipconfig` in PowerShell (e.g. `192.168.1.15`).
+3. Run `python main.py`.
+4. Anyone on your Wi-Fi can open `http://192.168.1.15:8000` from their mobile phone!
+
+---
+
+## 🎓 Academic Viva & Technical Interview Q&A
+
+**Q1: Why did you choose MongoDB over a relational database like MySQL or SQLite?**  
+> *Grocery items have dynamic, heterogeneous attributes (e.g., expiry dates, storage locations, varying units like kg, L, packets). A document-oriented NoSQL database like MongoDB provides flexible BSON schema, natural JSON compatibility with REST APIs, and blazing-fast indexed lookups without complex JOIN queries.*
+
+**Q2: How does the expiry classification logic work?**  
+> *The application compares each product's `expiry_date` against the current date (`date.today()`). If days < 0, it's marked `Expired ❌`. If 0 to 3 days, it's `Critical 🔴`. If 4 to 7 days, it's `Warning 🟠`. Otherwise, it's `Fresh ✅`. This calculation is performed dynamically by pure Python functions in `services.py`.*
+
+**Q3: How does the automated shopping list work?**  
+> *Whenever a product's `quantity` falls below its `min_quantity` threshold (or when the user clicks 'Auto-Sync'), the system calculates the replenishment amount needed (`2 * min_quantity - current_quantity`) and inserts it into `shopping_col`. When the user checks the item as purchased, the system automatically increases the inventory quantity in `products_col`.*
+
+**Q4: How does Pandas fit into this application?**  
+> *Pandas acts as the data analytics engine. In `services.py`, expense documents from MongoDB are converted into a Pandas DataFrame. We use `df.groupby()` and `pd.date_range()` to resample daily transactions over a 30-day window, aggregate monthly spending, and compute food wastage loss from expired items.*
+
+---
+
+## 📜 Technology Stack Summary
+- **Backend**: Python 3.11+, FastAPI, Uvicorn, Pydantic
+- **Database**: MongoDB 7.0+, PyMongo (Direct NoSQL, Zero ORM)
+- **Analytics & Math**: Pandas
+- **Document Generation**: ReportLab (PDF), OpenPyXL (Excel)
+- **Security & Auth**: JWT (python-jose), Passlib (Bcrypt)
+- **Frontend**: Vanilla HTML5, Vanilla CSS3 (Custom Design System), Modern ES6 JavaScript (Fetch API), Chart.js (Charts)
+- **Testing**: Pytest, HTTPX, FastAPI TestClient

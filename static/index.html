@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Grocery Tracker • Inventory & Expiry AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">🛒</div>
+        <div>
+          <div class="brand-title">SmartGrocery</div>
+          <div class="brand-tagline">MongoDB NoSQL • Zero ORM • Vibe Code</div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="dashboard">
+          <span class="tab-icon">📊</span> Dashboard
+        </button>
+        <button class="nav-tab" data-tab="inventory">
+          <span class="tab-icon">📦</span> Inventory
+        </button>
+        <button class="nav-tab" data-tab="shopping">
+          <span class="tab-icon">🛍️</span> Shopping List
+          <span class="nav-badge" id="navShoppingBadge">5</span>
+        </button>
+        <button class="nav-tab" data-tab="expenses">
+          <span class="tab-icon">💰</span> Expenses & Analytics
+        </button>
+      </nav>
+
+      <!-- User Profile & Action Menu -->
+      <div class="header-actions">
+        <div class="user-pill" id="userPill" title="Click to switch account">
+          <div class="avatar" id="userAvatar">U</div>
+          <div class="user-info">
+            <span class="user-name" id="userName">User</span>
+            <span class="user-role-badge" id="userRoleBadge">User</span>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btnSwitchAccount" title="Switch User / Admin">
+          🔄 Switch
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnLogout" title="Log Out">
+          🚪 Logout
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="main-container">
+    
+    <!-- ================================================================= -->
+    <!-- TAB 1: DASHBOARD -->
+    <!-- ================================================================= -->
+    <section id="tab-dashboard" class="tab-content active">
+      <!-- Welcome & Quick Bar -->
+      <div class="section-header">
+        <div>
+          <h1 class="page-title">Grocery Operations Dashboard</h1>
+          <p class="page-subtitle">Real-time inventory classification, expiry monitoring, and spending analytics.</p>
+        </div>
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="openProductModal()">
+            <span>➕</span> Add Product
+          </button>
+          <button class="btn btn-success" onclick="syncShoppingList()">
+            <span>🔄</span> Auto-Sync List
+          </button>
+          <a href="/api/reports/pdf" class="btn btn-outline" download>
+            <span>📄</span> Export PDF
+          </a>
+          <a href="/api/reports/excel" class="btn btn-outline" download>
+            <span>📊</span> Export Excel
+          </a>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards Grid (5 Core Metrics) -->
+      <div class="kpi-grid">
+        <div class="kpi-card" data-card="total">
+          <div class="kpi-icon">📦</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">Total Products</span>
+            <span class="kpi-value" id="kpiTotalProducts">35</span>
+            <span class="kpi-subtext">Active items in pantry</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-warning" data-card="expiring">
+          <div class="kpi-icon">⏳</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">Expiring Soon</span>
+            <span class="kpi-value" id="kpiExpiringSoon">4</span>
+            <span class="kpi-subtext">Requires attention (1-7 days)</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-danger" data-card="expired">
+          <div class="kpi-icon">❌</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">Expired Items</span>
+            <span class="kpi-value" id="kpiExpired">2</span>
+            <span class="kpi-subtext">Safely discard or compost</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-lowstock" data-card="lowstock">
+          <div class="kpi-icon">⚠️</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">Low Stock Items</span>
+            <span class="kpi-value" id="kpiLowStock">5</span>
+            <span class="kpi-subtext">Auto-queued in shopping list</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-money" data-card="spending">
+          <div class="kpi-icon">💳</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">Monthly Spending</span>
+            <span class="kpi-value" id="kpiMonthlySpending">₹4,250</span>
+            <span class="kpi-subtext">Current month grocery bill</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Smart Recommendations Carousel / Cards -->
+      <div class="dashboard-block">
+        <div class="block-header">
+          <div class="block-title">
+            <span>💡</span> Smart AI Grocery Recommendations
+          </div>
+          <span class="badge badge-info" id="recsCountBadge">6 Insights Active</span>
+        </div>
+        <div class="recs-grid" id="recsContainer">
+          <!-- Dynamic recommendations populated here -->
+          <div class="rec-skeleton">Loading AI insights...</div>
+        </div>
+      </div>
+
+      <!-- Two-Column Priority Alerts -->
+      <div class="dashboard-columns">
+        <!-- Expiring Soon Column -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>⏰</span> Priority Expiry Watchlist
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="switchTab('inventory', {expiry: 'critical'})">View All</button>
+          </div>
+          <div class="table-responsive">
+            <table class="compact-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Expiry Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="dashExpiringTbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Low Stock Column -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title">
+              <span>⚠️</span> Low Stock & Restock Alerts
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="switchTab('shopping')">Shopping List</button>
+          </div>
+          <div class="table-responsive">
+            <table class="compact-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Current Stock</th>
+                  <th>Min Level</th>
+                  <th>Quick Restock</th>
+                </tr>
+              </thead>
+              <tbody id="dashLowStockTbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expense Analytics Preview Chart -->
+      <div class="dashboard-columns">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title"><span>📈</span> 30-Day Spending Trend</div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="dashTrendChart"></canvas>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title"><span>🍩</span> Spending by Category</div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="dashCategoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: INVENTORY -->
+    <!-- ================================================================= -->
+    <section id="tab-inventory" class="tab-content">
+      <div class="section-header">
+        <div>
+          <h1 class="page-title">Grocery Inventory Management</h1>
+          <p class="page-subtitle">Search, filter, update stock quantities, and monitor freshness status.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="openProductModal()">
+            <span>➕</span> Add New Product
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter & Search Toolbar -->
+      <div class="toolbar-card">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="inventorySearch" placeholder="Search product name, brand, or category..." oninput="debounceInventorySearch()" />
+        </div>
+
+        <div class="filter-controls">
+          <select id="categoryFilter" onchange="loadInventory()">
+            <option value="all">All Categories</option>
+          </select>
+
+          <!-- Expiry Status Filter Pills -->
+          <div class="filter-pills" id="expiryFilterPills">
+            <button class="filter-pill active" data-expiry="all" onclick="setExpiryFilter('all')">All Expiry</button>
+            <button class="filter-pill pill-danger" data-expiry="expired" onclick="setExpiryFilter('expired')">Expired ❌</button>
+            <button class="filter-pill pill-critical" data-expiry="critical" onclick="setExpiryFilter('critical')">1-3 Days 🔴</button>
+            <button class="filter-pill pill-warning" data-expiry="warning" onclick="setExpiryFilter('warning')">4-7 Days 🟠</button>
+            <button class="filter-pill pill-fresh" data-expiry="fresh" onclick="setExpiryFilter('fresh')">Fresh ✅</button>
+          </div>
+
+          <!-- Stock Status Filter Pills -->
+          <div class="filter-pills" id="stockFilterPills">
+            <button class="filter-pill active" data-stock="all" onclick="setStockFilter('all')">All Stock</button>
+            <button class="filter-pill pill-low" data-stock="low_stock" onclick="setStockFilter('low_stock')">Low Stock ⚠️</button>
+            <button class="filter-pill pill-out" data-stock="out_of_stock" onclick="setStockFilter('out_of_stock')">Out of Stock ❌</button>
+            <button class="filter-pill pill-avail" data-stock="available" onclick="setStockFilter('available')">Available ✅</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inventory Data Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Product Details</th>
+              <th>Category</th>
+              <th>Quantity Stepper</th>
+              <th>Stock Status</th>
+              <th>Expiry Date</th>
+              <th>Freshness Classification</th>
+              <th>Unit Price</th>
+              <th>Total Value</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTbody">
+            <!-- Dynamically loaded -->
+          </tbody>
+        </table>
+        <div id="inventoryEmptyState" class="empty-state" style="display:none;">
+          <div class="empty-icon">📦</div>
+          <h3>No products match your filters</h3>
+          <p>Try clearing search or adjusting filter pills.</p>
+          <button class="btn btn-outline btn-sm" onclick="resetInventoryFilters()">Reset Filters</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: SMART SHOPPING LIST -->
+    <!-- ================================================================= -->
+    <section id="tab-shopping" class="tab-content">
+      <div class="section-header">
+        <div>
+          <h1 class="page-title">Smart Shopping & Restock List</h1>
+          <p class="page-subtitle">Auto-generated from low-stock items. Check off purchased items to auto-restock pantry.</p>
+        </div>
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="openShoppingModal()">
+            <span>➕</span> Add Item
+          </button>
+          <button class="btn btn-success" onclick="syncShoppingList()">
+            <span>🔄</span> Auto-Sync from Inventory
+          </button>
+          <button class="btn btn-whatsapp" onclick="copyShoppingListWhatsApp()">
+            <span>📲</span> Copy for WhatsApp
+          </button>
+          <button class="btn btn-secondary" onclick="clearPurchasedItems()">
+            <span>🧹</span> Clear Purchased
+          </button>
+        </div>
+      </div>
+
+      <!-- Shopping Summary Strip -->
+      <div class="shopping-summary-card">
+        <div class="shopping-stat">
+          <span class="stat-label">Pending Items</span>
+          <span class="stat-value" id="shopPendingCount">0</span>
+        </div>
+        <div class="shopping-stat">
+          <span class="stat-label">Estimated Bill</span>
+          <span class="stat-value" id="shopEstimatedCost">₹0.00</span>
+        </div>
+        <div class="shopping-stat-note">
+          <span>💡 Marking an item as purchased automatically adds it back to your inventory stock!</span>
+        </div>
+      </div>
+
+      <!-- Shopping List Items -->
+      <div class="shopping-list-grid" id="shoppingItemsContainer">
+        <!-- Dynamically loaded -->
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: EXPENSES & ANALYTICS -->
+    <!-- ================================================================= -->
+    <section id="tab-expenses" class="tab-content">
+      <div class="section-header">
+        <div>
+          <h1 class="page-title">Expense & Wastage Analytics</h1>
+          <p class="page-subtitle">Powered by Python Pandas: 30-day spending trends, category breakdown, and payment methods.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="openExpenseModal()">
+            <span>➕</span> Log New Expense
+          </button>
+        </div>
+      </div>
+
+      <!-- Expense Summary Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-money">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">Total Spent (All Time)</span>
+            <span class="kpi-value" id="expAllTime">₹4,250.00</span>
+            <span class="kpi-subtext">Tracked transactions</span>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon">📅</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">This Month Spending</span>
+            <span class="kpi-value" id="expThisMonth">₹4,250.00</span>
+            <span class="kpi-subtext">September 2026</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-danger">
+          <div class="kpi-icon">🗑️</div>
+          <div class="kpi-meta">
+            <span class="kpi-label">Potential Food Wastage</span>
+            <span class="kpi-value" id="expWastage">₹170.00</span>
+            <span class="kpi-subtext">Cost of 2 expired products</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Charts -->
+      <div class="dashboard-columns">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title"><span>📊</span> 30-Day Daily Spending Trend</div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="expenseDailyChart"></canvas>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title"><span>🥧</span> Category Spending Breakdown</div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="expenseCategoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Methods & Top Items -->
+      <div class="dashboard-columns">
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title"><span>💳</span> Payment Method Breakdown</div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="expensePaymentChart"></canvas>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-header">
+            <div class="card-title"><span>🏆</span> Top 5 Grocery Expenses</div>
+          </div>
+          <div class="table-responsive">
+            <table class="compact-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody id="topExpensesTbody">
+                <!-- Dynamically loaded -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expense History Table -->
+      <div class="dashboard-block" style="margin-top: 2rem;">
+        <div class="block-header">
+          <div class="block-title"><span>📜</span> Recent Expense Logs</div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Payment Mode</th>
+                <th>Amount (₹)</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="expenseLogsTbody">
+              <!-- Dynamically loaded -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODALS -->
+  <!-- ================================================================= -->
+
+  <!-- 1. Add / Edit Product Modal -->
+  <div class="modal-overlay" id="productModal" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="productModalTitle">Add New Product</h3>
+        <button class="modal-close" onclick="closeProductModal()">✕</button>
+      </div>
+      <form id="productForm" onsubmit="saveProduct(event)">
+        <input type="hidden" id="modalProductId" />
+        <div class="form-grid">
+          <div class="form-group span-2">
+            <label>Product Name *</label>
+            <input type="text" id="modalProductName" required placeholder="e.g. Amul Taaza Toned Milk" />
+          </div>
+          <div class="form-group">
+            <label>Brand</label>
+            <input type="text" id="modalProductBrand" placeholder="e.g. Amul, Tata, Aashirvaad" />
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="modalProductCategory" required>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantity *</label>
+            <input type="number" step="0.1" min="0" id="modalProductQuantity" required value="1" />
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <select id="modalProductUnit">
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="L">L</option>
+              <option value="ml">ml</option>
+              <option value="packets">packets</option>
+              <option value="pieces">pieces</option>
+              <option value="bottles">bottles</option>
+              <option value="boxes">boxes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Min Stock Threshold *</label>
+            <input type="number" step="0.1" min="0" id="modalProductMinQty" required value="1" />
+          </div>
+          <div class="form-group">
+            <label>Unit Price (₹) *</label>
+            <input type="number" step="0.1" min="0" id="modalProductPrice" required value="50" />
+          </div>
+          <div class="form-group">
+            <label>Purchase Date *</label>
+            <input type="date" id="modalProductPurchaseDate" required />
+          </div>
+          <div class="form-group">
+            <label>Expiry Date *</label>
+            <input type="date" id="modalProductExpiryDate" required />
+          </div>
+          <div class="form-group span-2">
+            <label>Storage Location</label>
+            <select id="modalProductLocation">
+              <option value="Pantry">Pantry</option>
+              <option value="Refrigerator">Refrigerator</option>
+              <option value="Freezer">Freezer</option>
+              <option value="Kitchen Counter">Kitchen Counter</option>
+              <option value="Spice Rack">Spice Rack</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveProduct">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Add Shopping Item Modal -->
+  <div class="modal-overlay" id="shoppingModal" style="display:none;">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Shopping Item</h3>
+        <button class="modal-close" onclick="closeShoppingModal()">✕</button>
+      </div>
+      <form id="shoppingForm" onsubmit="saveShoppingItem(event)">
+        <div class="form-group">
+          <label>Product Name *</label>
+          <input type="text" id="modalShopName" required placeholder="e.g. Basmati Rice" />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="modalShopCategory">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantity *</label>
+            <input type="number" step="0.1" min="0.1" id="modalShopQty" required value="1" />
+          </div>
+          <div class="form-group">
+            <label>Unit</label>
+            <select id="modalShopUnit">
+              <option value="kg">kg</option>
+              <option value="L">L</option>
+              <option value="packets">packets</option>
+              <option value="pieces">pieces</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Estimated Price (₹)</label>
+          <input type="number" step="0.1" min="0" id="modalShopPrice" value="100" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeShoppingModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add to List</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Log Expense Modal -->
+  <div class="modal-overlay" id="expenseModal" style="display:none;">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Log Grocery Expense</h3>
+        <button class="modal-close" onclick="closeExpenseModal()">✕</button>
+      </div>
+      <form id="expenseForm" onsubmit="saveExpense(event)">
+        <div class="form-group">
+          <label>Item Name *</label>
+          <input type="text" id="modalExpName" required placeholder="e.g. Weekly Supermarket Run" />
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="modalExpCategory" required>
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount (₹) *</label>
+          <input type="number" step="0.1" min="0" id="modalExpAmount" required placeholder="500" />
+        </div>
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="modalExpDate" required />
+        </div>
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select id="modalExpPayment">
+            <option value="UPI">UPI / GPay / PhonePe</option>
+            <option value="Card">Debit / Credit Card</option>
+            <option value="Cash">Cash</option>
+            <option value="Net Banking">Net Banking</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="modalExpNotes" placeholder="e.g. DMart grocery run" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Switch Account Modal -->
+  <div class="modal-overlay" id="loginModal" style="display:none;">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Switch Account (Demo Access)</h3>
+        <button class="modal-close" onclick="closeLoginModal()">✕</button>
+      </div>
+      <div class="demo-auth-box">
+        <p class="text-muted">Choose a quick pre-seeded persona to view immediate role differences:</p>
+        <div class="demo-buttons">
+          <button class="btn btn-primary btn-block" onclick="quickLogin('user', 'user123')">
+            👤 Login as User (Samruddhi • Portfolio Data)
+          </button>
+          <button class="btn btn-outline btn-block" onclick="quickLogin('admin', 'admin123')">
+            🛡️ Login as Admin (System Administrator)
+          </button>
+        </div>
+        <div class="auth-divider"><span>OR CUSTOM LOGIN</span></div>
+        <form id="customLoginForm" onsubmit="customLogin(event)">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="loginUsername" required placeholder="username" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••" />
+          </div>
+          <button type="submit" class="btn btn-secondary btn-block">Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- App Script -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Grocery Tracker • Inventory & Expiry AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css" />
   <!-- Chart.js for analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   <!-- Top Navigation Header -->
   <header class="app-header">
@@ -19,7 +23,7 @@
         <div class="brand-icon">🛒</div>
         <div>
           <div class="brand-title">SmartGrocery</div>
-          <div class="brand-tagline">MongoDB NoSQL • Zero ORM • Vibe Code</div>
+          <!-- <div class="brand-tagline">MongoDB NoSQL • Zero ORM • Vibe Code</div> -->
         </div>
       </div>
 
@@ -61,7 +65,7 @@
 
   <!-- Main Content Area -->
   <main class="main-container">
-    
+
     <!-- ================================================================= -->
     <!-- TAB 1: DASHBOARD -->
     <!-- ================================================================= -->
@@ -158,7 +162,8 @@
             <div class="card-title">
               <span>⏰</span> Priority Expiry Watchlist
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="switchTab('inventory', {expiry: 'critical'})">View All</button>
+            <button class="btn btn-ghost btn-sm" onclick="switchTab('inventory', {expiry: 'critical'})">View
+              All</button>
           </div>
           <div class="table-responsive">
             <table class="compact-table">
@@ -247,7 +252,8 @@
       <div class="toolbar-card">
         <div class="search-box">
           <span class="search-icon">🔍</span>
-          <input type="text" id="inventorySearch" placeholder="Search product name, brand, or category..." oninput="debounceInventorySearch()" />
+          <input type="text" id="inventorySearch" placeholder="Search product name, brand, or category..."
+            oninput="debounceInventorySearch()" />
         </div>
 
         <div class="filter-controls">
@@ -258,18 +264,25 @@
           <!-- Expiry Status Filter Pills -->
           <div class="filter-pills" id="expiryFilterPills">
             <button class="filter-pill active" data-expiry="all" onclick="setExpiryFilter('all')">All Expiry</button>
-            <button class="filter-pill pill-danger" data-expiry="expired" onclick="setExpiryFilter('expired')">Expired ❌</button>
-            <button class="filter-pill pill-critical" data-expiry="critical" onclick="setExpiryFilter('critical')">1-3 Days 🔴</button>
-            <button class="filter-pill pill-warning" data-expiry="warning" onclick="setExpiryFilter('warning')">4-7 Days 🟠</button>
-            <button class="filter-pill pill-fresh" data-expiry="fresh" onclick="setExpiryFilter('fresh')">Fresh ✅</button>
+            <button class="filter-pill pill-danger" data-expiry="expired" onclick="setExpiryFilter('expired')">Expired
+              ❌</button>
+            <button class="filter-pill pill-critical" data-expiry="critical" onclick="setExpiryFilter('critical')">1-3
+              Days 🔴</button>
+            <button class="filter-pill pill-warning" data-expiry="warning" onclick="setExpiryFilter('warning')">4-7 Days
+              🟠</button>
+            <button class="filter-pill pill-fresh" data-expiry="fresh" onclick="setExpiryFilter('fresh')">Fresh
+              ✅</button>
           </div>
 
           <!-- Stock Status Filter Pills -->
           <div class="filter-pills" id="stockFilterPills">
             <button class="filter-pill active" data-stock="all" onclick="setStockFilter('all')">All Stock</button>
-            <button class="filter-pill pill-low" data-stock="low_stock" onclick="setStockFilter('low_stock')">Low Stock ⚠️</button>
-            <button class="filter-pill pill-out" data-stock="out_of_stock" onclick="setStockFilter('out_of_stock')">Out of Stock ❌</button>
-            <button class="filter-pill pill-avail" data-stock="available" onclick="setStockFilter('available')">Available ✅</button>
+            <button class="filter-pill pill-low" data-stock="low_stock" onclick="setStockFilter('low_stock')">Low Stock
+              ⚠️</button>
+            <button class="filter-pill pill-out" data-stock="out_of_stock" onclick="setStockFilter('out_of_stock')">Out
+              of Stock ❌</button>
+            <button class="filter-pill pill-avail" data-stock="available"
+              onclick="setStockFilter('available')">Available ✅</button>
           </div>
         </div>
       </div>
@@ -310,7 +323,8 @@
       <div class="section-header">
         <div>
           <h1 class="page-title">Smart Shopping & Restock List</h1>
-          <p class="page-subtitle">Auto-generated from low-stock items. Check off purchased items to auto-restock pantry.</p>
+          <p class="page-subtitle">Auto-generated from low-stock items. Check off purchased items to auto-restock
+            pantry.</p>
         </div>
         <div class="quick-actions">
           <button class="btn btn-primary" onclick="openShoppingModal()">
@@ -356,7 +370,8 @@
       <div class="section-header">
         <div>
           <h1 class="page-title">Expense & Wastage Analytics</h1>
-          <p class="page-subtitle">Powered by Python Pandas: 30-day spending trends, category breakdown, and payment methods.</p>
+          <p class="page-subtitle">Powered by Python Pandas: 30-day spending trends, category breakdown, and payment
+            methods.</p>
         </div>
         <div>
           <button class="btn btn-primary" onclick="openExpenseModal()">
@@ -686,4 +701,5 @@
   <!-- App Script -->
   <script src="/static/app.js"></script>
 </body>
+
 </html>
